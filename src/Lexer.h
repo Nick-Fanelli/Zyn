@@ -13,6 +13,7 @@ namespace Zyn {
 
         // Literals
         TokenTypeIntegerLiteral,
+        TokenTypeStringLiteral,
 
         // Operators
         TokenTypeEquals,
@@ -21,6 +22,8 @@ namespace Zyn {
         // Parens
         TokenTypeOpenParen,
         TokenTypeCloseParen,
+        TokenTypeOpenCurlyBrace,
+        TokenTypeCloseCurlyBrace,
 
         // Delimeter
         TokenTypeSemiColon
@@ -34,12 +37,15 @@ namespace Zyn {
         "INTEGER_IDENTIFIER",
 
         "INTEGER_LITERAL",
+        "STRING_LITERAL",
 
         "EQUALS",
         "BINARY_OPERATOR",
 
         "OPEN_PAREN",
         "CLOSE_PAREN",
+        "OPEN_CURLY_BRACE",
+        "CLOSE_CURLY_BRACE",
 
         "SEMI_COLON"
         

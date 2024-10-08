@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "Lexer.h"
 
 using namespace Zyn;
 
@@ -7,12 +7,18 @@ std::vector<Token> Tokenizer::Parse(const std::string& inProgram) {
     std::vector<Token> tokens;
 
     Token currentToken;
+    currentToken.m_LineNumber = 1;
 
     for(char currCh : inProgram) {
 
         switch (currCh) {
 
             case '(':
+                if(currentToken.m_Type == TokenTypeStringLiteral) {
+                    currentToken.m_Text.append(1, currCh);
+                    break;
+                }
+
                 if(currentToken.m_Type != TokenTypeUndefined) {
                     EndToken(currentToken, tokens);
                 }
@@ -24,6 +30,11 @@ std::vector<Token> Tokenizer::Parse(const std::string& inProgram) {
                 break;
 
             case ')':
+                if(currentToken.m_Type == TokenTypeStringLiteral) {
+                    currentToken.m_Text.append(1, currCh);
+                    break;
+                }
+
                 if(currentToken.m_Type != TokenTypeUndefined) {
                     EndToken(currentToken, tokens);
                 }
@@ -34,10 +45,47 @@ std::vector<Token> Tokenizer::Parse(const std::string& inProgram) {
 
                 break;
 
+            case '{':
+                if(currentToken.m_Type == TokenTypeStringLiteral) {
+                    currentToken.m_Text.append(1, currCh);
+                    break;
+                }
+
+                if(currentToken.m_Type != TokenTypeUndefined) {
+                    EndToken(currentToken, tokens);
+                }
+
+                currentToken.m_Type = TokenTypeOpenCurlyBrace;
+                currentToken.m_Text.append(1, currCh);
+                EndToken(currentToken, tokens);
+
+                break;
+
+            case '}':
+                if(currentToken.m_Type == TokenTypeStringLiteral) {
+                    currentToken.m_Text.append(1, currCh);
+                    break;
+                }
+                    
+                if(currentToken.m_Type != TokenTypeUndefined) {
+                    EndToken(currentToken, tokens);
+                }
+
+                currentToken.m_Type = TokenTypeCloseCurlyBrace;
+                currentToken.m_Text.append(1, currCh);
+                EndToken(currentToken, tokens);
+
+                break;
+
             case '+':
             case '-':
             case '*':
             case '/':
+                if(currentToken.m_Type == TokenTypeStringLiteral) {
+                    currentToken.m_Text.append(1, currCh);
+                    break;
+                }
+
                 if(currentToken.m_Type != TokenTypeUndefined) {
                     EndToken(currentToken, tokens);
                 }
@@ -49,6 +97,11 @@ std::vector<Token> Tokenizer::Parse(const std::string& inProgram) {
                 break;
 
             case '=':
+                if(currentToken.m_Type == TokenTypeStringLiteral) {
+                    currentToken.m_Text.append(1, currCh);
+                    break;
+                }
+
                 if(currentToken.m_Type != TokenTypeUndefined) {
                     EndToken(currentToken, tokens);
                 }
@@ -60,6 +113,11 @@ std::vector<Token> Tokenizer::Parse(const std::string& inProgram) {
                 break;
 
             case ';':
+                if(currentToken.m_Type == TokenTypeStringLiteral) {
+                    currentToken.m_Text.append(1, currCh);
+                    break;
+                }
+
                 if(currentToken.m_Type != TokenTypeUndefined) {
                     EndToken(currentToken, tokens);
                 }
@@ -70,11 +128,32 @@ std::vector<Token> Tokenizer::Parse(const std::string& inProgram) {
 
                 break;
 
+            case '"':
+                if(currentToken.m_Type == TokenTypeStringLiteral) {
+                    EndToken(currentToken, tokens);
+                } else if(currentToken.m_Type == TokenTypeUndefined) {
+                    currentToken.m_Type = TokenTypeStringLiteral;
+                } else {
+                    EndToken(currentToken, tokens);
+                    currentToken.m_Type = TokenTypeStringLiteral;
+                }
+
+                break;
+
             case '\n':
             case '\r':
+                EndToken(currentToken, tokens);
+
+                currentToken.m_LineNumber++;
+
+                break;
             case '\t':
             case ' ':
-                EndToken(currentToken, tokens);
+                if(currentToken.m_Type == TokenTypeStringLiteral) {
+                    currentToken.m_Text.append(1, currCh);
+                } else {                    
+                    EndToken(currentToken, tokens);
+                }
 
                 break;
 
