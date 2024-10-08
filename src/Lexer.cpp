@@ -196,6 +196,8 @@ std::vector<Token> Tokenizer::Parse(const std::string& inProgram) {
 
     EndToken(currentToken, tokens);
 
+    tokens.push_back(Token{TokenTypeEOF, "EOF"});
+
     return tokens;
 
 }

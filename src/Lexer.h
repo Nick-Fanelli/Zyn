@@ -26,7 +26,10 @@ namespace Zyn {
         TokenTypeCloseCurlyBrace,
 
         // Delimeter
-        TokenTypeSemiColon
+        TokenTypeSemiColon,
+
+        // Special
+        TokenTypeEOF
 
     };
 
@@ -47,7 +50,9 @@ namespace Zyn {
         "OPEN_CURLY_BRACE",
         "CLOSE_CURLY_BRACE",
 
-        "SEMI_COLON"
+        "SEMI_COLON",
+
+        "EOF"
         
     };
 
