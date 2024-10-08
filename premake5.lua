@@ -1,9 +1,17 @@
-workspace "ProgrammingLanguage"
+workspace "Zyn"
     configurations { "Debug", "Release" }
 
-project "ProgrammingLanguage"
+project "Zyn"
     kind "ConsoleApp"
     language "C++"
+    cppdialect "C++20"
+
+    pchheader "src/zynpch.h"
+
+    includedirs {
+        "src"
+    }
+
     files { "src/**.h", "src/**.cpp" }
 
     filter { "configurations:Debug" }

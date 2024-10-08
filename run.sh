@@ -1,2 +1,7 @@
 sh build.sh
-./bin/Debug/ProgrammingLanguage
+
+printf "\n"
+
+./bin/Debug/Zyn
+
+printf "\n--- Press Any Key to Continue ---"
