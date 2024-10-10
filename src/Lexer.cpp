@@ -9,7 +9,7 @@ std::vector<Token> Tokenizer::Parse(const std::string& inProgram) {
     Token currentToken;
     currentToken.m_LineNumber = 1;
 
-    for(char currCh : inProgram) {
+    for(const char currCh : inProgram) {
 
         switch (currCh) {
 
@@ -207,8 +207,7 @@ void Tokenizer::EndToken(Token& token, std::vector<Token>& tokens) {
     if(token.m_Type != TokenTypeUndefined) {
 
         if(token.m_Type == TokenTypeIdentifier) {
-            auto it = IDENTIFIER_MAP.find(token.m_Text);
-            if(it != IDENTIFIER_MAP.end()) {
+            if(const auto it = IDENTIFIER_MAP.find(token.m_Text); it != IDENTIFIER_MAP.end()) {
                 token.m_Type = it->second;
             }
         }
@@ -236,7 +235,7 @@ bool Tokenizer::IsAlpha(const std::string& string) {
 
 bool Tokenizer::IsInt(const std::string& string) {
 
-    std::string::const_iterator it = string.begin();
+    auto it = string.begin();
     while(it != string.end() && std::isdigit(*it)) ++it;
     return !string.empty() && it == string.end();
 

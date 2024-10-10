@@ -11,6 +11,7 @@
 #include <thread>
 #include <utility>
 #include <string_view>
+#include <cstdio>
 
 #include <string>
 #include <stack>

@@ -9,7 +9,11 @@ namespace Zyn {
         // Identifiers
         TokenTypeUndefined,
         TokenTypeIdentifier,
-        TokenTypeIntegerIdentifier,
+
+        // Keywords
+        TokenTypeIntegerKeyword,
+        TokenTypeStringKeyword,
+        TokenTypeVoidKeyword,
 
         // Literals
         TokenTypeIntegerLiteral,
@@ -37,7 +41,10 @@ namespace Zyn {
 
         "UNDEFINED",
         "IDENTIFIER",
-        "INTEGER_IDENTIFIER",
+
+        "INTEGER_KEYWORD",
+        "STRING_KEYWORD",
+        "VOID_KEYWORD",
 
         "INTEGER_LITERAL",
         "STRING_LITERAL",
@@ -57,7 +64,9 @@ namespace Zyn {
     };
 
     const std::unordered_map<std::string, TokenType> IDENTIFIER_MAP = {
-        { "int", TokenTypeIntegerIdentifier }
+        { "int", TokenTypeIntegerKeyword },
+        { "string", TokenTypeStringKeyword },
+        { "void", TokenTypeVoidKeyword }
     };
 
     class Token {
@@ -68,7 +77,7 @@ namespace Zyn {
         }
 
     public:
-        enum TokenType m_Type{TokenTypeUndefined};
+        TokenType m_Type{TokenTypeUndefined};
         std::string m_Text;
 
         size_t m_StartOffset{0};
@@ -83,9 +92,9 @@ namespace Zyn {
         std::vector<Token> Parse(const std::string& inProgram);
 
     private:
-        inline void EndToken(Token& token, std::vector<Token>& tokens);
-        inline bool IsAlpha(const std::string& string);
-        inline bool IsInt(const std::string& string);
+        static inline void EndToken(Token& token, std::vector<Token>& tokens);
+        static inline bool IsAlpha(const std::string& string);
+        static inline bool IsInt(const std::string& string);
 
     };
 

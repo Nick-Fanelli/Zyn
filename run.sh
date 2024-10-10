@@ -1,3 +1,5 @@
+mv ./bin/Debug/Zyn ./bin/Debug/.Zyn
+
 sh build.sh
 
 printf "\n"
