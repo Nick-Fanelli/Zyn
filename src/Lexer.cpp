@@ -2,13 +2,6 @@
 
 using namespace Zyn;
 
-
-static void SkipHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
-
-    tokenizer.Advance(match.str().size());
-
-}
-
 static void DefaultHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
 
     tokenizer.Advance(match.str().size());
@@ -16,9 +9,21 @@ static void DefaultHandler(Tokenizer& tokenizer, TokenType tokenType, const std:
 
 }
 
-static void IntegerHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
+static void SkipHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
 
     tokenizer.Advance(match.str().size());
+
+}
+
+static void IdentifierHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
+
+    tokenizer.Advance(match.str().size());
+
+    if (const auto it = KeywordMap.find(match.str()); it != KeywordMap.end()) {
+        tokenType = it->second;
+    }
+
+    tokenizer.PushBackToken(tokenType, match.str());
 
 }
 
@@ -26,12 +31,22 @@ Tokenizer::Tokenizer(const std::string& inProgram) : m_InProgram(inProgram) {
 
     m_TokenPatterns = {
 
-        { std::regex(R"(\s+)"), TokenTypeWhitespace, SkipHandler },
+        { std::regex(R"(\s+)"), TokenTypeWhitespace, SkipHandler }, // Whitespace
+        { std::regex(R"(//.*)"), TokenTypeWhitespace, SkipHandler }, // Single-Line Comment
+        { std::regex(R"(/\*(.|\n)*\*/)"), TokenTypeWhitespace, SkipHandler }, // Multi-Line Comment
+
+        { std::regex(R"([a-zA-Z_][a-zA-Z0-9_]*)"), TokenTypeIdentifier, IdentifierHandler },
+
+        { std::regex(R"(".*")"), TokenTypeStringLiteral, DefaultHandler },
+        { std::regex(R"([0-9]+(\.[0-9]+)?f)"), TokenTypeFloatLiteral, DefaultHandler },
+        { std::regex(R"([0-9]+\.[0-9]+)"), TokenTypeDoubleLiteral, DefaultHandler },
         { std::regex(R"([0-9]+)"), TokenTypeIntegerLiteral, DefaultHandler },
 
         // Parens, Braces, Brackets
         { std::regex(R"(\()"), TokenTypeOpenParen, DefaultHandler },
         { std::regex(R"(\))"), TokenTypeCloseParen, DefaultHandler },
+        { std::regex(R"(\{)"), TokenTypeOpenCurlyBrace, DefaultHandler },
+        { std::regex(R"(\})"), TokenTypeCloseCurlyBrace, DefaultHandler },
 
         // Multi Numerical Manipulation Operators
         { std::regex(R"(\+=)"), TokenTypePlusEqualsOperator, DefaultHandler },
@@ -53,6 +68,16 @@ Tokenizer::Tokenizer(const std::string& inProgram) : m_InProgram(inProgram) {
         // Assignment
         { std::regex(R"(!=)"), TokenTypeNotEquals, DefaultHandler },
         { std::regex(R"(=)"), TokenTypeEquals, DefaultHandler },
+
+        { std::regex(R"(!)"), TokenTypeExclamation, DefaultHandler },
+        { std::regex(R"(\?)"), TokenTypeQuestionMark, DefaultHandler },
+
+        // Delimiter
+        { std::regex(R"(;)"), TokenTypeSemiColon, DefaultHandler },
+        { std::regex(R"(:)"), TokenTypeColon, DefaultHandler },
+        { std::regex(R"(\.)"), TokenTypeDot, DefaultHandler },
+        { std::regex(R"(,)"), TokenTypeComma, DefaultHandler },
+
 
 
     };
