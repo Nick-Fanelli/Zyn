@@ -1,6 +1,9 @@
+#include <Parser.h>
+
 #include "zynpch.h"
 
 #include "Lexer.h"
+#include "PrintingUtils.h"
 
 using namespace Zyn;
 
@@ -33,10 +36,12 @@ int main() {
 
     }
 
-    // Parser parser{tokens};
-    // const Program& program = parser.ProduceAST();
+    Parser parser{tokens};
+    std::unique_ptr<ProgramNode> program = parser.ProduceAST();
 
-    // std::cout << program << std::endl;
+
+
+    std::cout << program->Represent() << std::endl;
 
     return 0;
 

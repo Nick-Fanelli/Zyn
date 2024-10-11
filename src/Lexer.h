@@ -28,7 +28,7 @@ namespace Zyn {
 
     private:
 
-        bool IsAtEOF() const { return m_Pos >= m_InProgram.size(); }
+        [[nodiscard]] bool IsAtEOF() const { return m_Pos >= m_InProgram.size(); }
 
     public:
 

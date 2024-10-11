@@ -1,0 +1,26 @@
+/*
+ * Person Struct
+ * Defines a person
+ */
+struct Person {
+
+    int Age;
+    string Name;
+
+}
+
+// Calculate Sum
+int calculateSum(int a, int b) {
+
+    return a * b;
+
+}
+
+// Create our person
+Person? person;
+person = Person(calculateSum(5, 10), "Hello World");
+
+// Modify Person Data
+person.Age += 10;
+person.Name += " Jr."
+person.Age /= 2;

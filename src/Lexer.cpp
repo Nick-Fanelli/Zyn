@@ -86,11 +86,9 @@ Tokenizer::Tokenizer(const std::string& inProgram) : m_InProgram(inProgram) {
 
 std::vector<Token> Tokenizer::Parse() {
 
-    bool matched;
-
     while(!IsAtEOF()) {
 
-        matched = false;
+        bool matched = false;
 
         for (auto& [pattern, tokenType, handler] : m_TokenPatterns) {
 
@@ -116,6 +114,8 @@ std::vector<Token> Tokenizer::Parse() {
         }
 
     }
+
+    m_Tokens.push_back({ TokenTypeEOF, "EOF" });
 
     return m_Tokens;
 
