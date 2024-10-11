@@ -24,8 +24,8 @@ int main() {
 
     const std::string programString = ReadFile("res/program.zyn");
 
-    Tokenizer tokenizer;
-    std::vector<Token> tokens = tokenizer.Parse(programString);
+    Tokenizer tokenizer{programString};
+    std::vector<Token> tokens = tokenizer.Parse();
 
     for(const Token& token : tokens) {
 

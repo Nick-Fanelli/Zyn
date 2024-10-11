@@ -2,241 +2,104 @@
 
 using namespace Zyn;
 
-std::vector<Token> Tokenizer::Parse(const std::string& inProgram) {
 
-    std::vector<Token> tokens;
+static void SkipHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
 
-    Token currentToken;
-    currentToken.m_LineNumber = 1;
-
-    for(const char currCh : inProgram) {
-
-        switch (currCh) {
-
-            case '(':
-                if(currentToken.m_Type == TokenTypeStringLiteral) {
-                    currentToken.m_Text.append(1, currCh);
-                    break;
-                }
-
-                if(currentToken.m_Type != TokenTypeUndefined) {
-                    EndToken(currentToken, tokens);
-                }
-
-                currentToken.m_Type = TokenTypeOpenParen;
-                currentToken.m_Text.append(1, currCh);
-                EndToken(currentToken, tokens);
-                
-                break;
-
-            case ')':
-                if(currentToken.m_Type == TokenTypeStringLiteral) {
-                    currentToken.m_Text.append(1, currCh);
-                    break;
-                }
-
-                if(currentToken.m_Type != TokenTypeUndefined) {
-                    EndToken(currentToken, tokens);
-                }
-
-                currentToken.m_Type = TokenTypeCloseParen;
-                currentToken.m_Text.append(1, currCh);
-                EndToken(currentToken, tokens);
-
-                break;
-
-            case '{':
-                if(currentToken.m_Type == TokenTypeStringLiteral) {
-                    currentToken.m_Text.append(1, currCh);
-                    break;
-                }
-
-                if(currentToken.m_Type != TokenTypeUndefined) {
-                    EndToken(currentToken, tokens);
-                }
-
-                currentToken.m_Type = TokenTypeOpenCurlyBrace;
-                currentToken.m_Text.append(1, currCh);
-                EndToken(currentToken, tokens);
-
-                break;
-
-            case '}':
-                if(currentToken.m_Type == TokenTypeStringLiteral) {
-                    currentToken.m_Text.append(1, currCh);
-                    break;
-                }
-                    
-                if(currentToken.m_Type != TokenTypeUndefined) {
-                    EndToken(currentToken, tokens);
-                }
-
-                currentToken.m_Type = TokenTypeCloseCurlyBrace;
-                currentToken.m_Text.append(1, currCh);
-                EndToken(currentToken, tokens);
-
-                break;
-
-            case '+':
-            case '-':
-            case '*':
-            case '/':
-                if(currentToken.m_Type == TokenTypeStringLiteral) {
-                    currentToken.m_Text.append(1, currCh);
-                    break;
-                }
-
-                if(currentToken.m_Type != TokenTypeUndefined) {
-                    EndToken(currentToken, tokens);
-                }
-
-                currentToken.m_Type = TokenTypeBinaryOperator;
-                currentToken.m_Text.append(1, currCh);
-                EndToken(currentToken, tokens);
-
-                break;
-
-            case '=':
-                if(currentToken.m_Type == TokenTypeStringLiteral) {
-                    currentToken.m_Text.append(1, currCh);
-                    break;
-                }
-
-                if(currentToken.m_Type != TokenTypeUndefined) {
-                    EndToken(currentToken, tokens);
-                }
-
-                currentToken.m_Type = TokenTypeEquals;
-                currentToken.m_Text.append(1, currCh);
-                EndToken(currentToken, tokens);
-
-                break;
-
-            case ';':
-                if(currentToken.m_Type == TokenTypeStringLiteral) {
-                    currentToken.m_Text.append(1, currCh);
-                    break;
-                }
-
-                if(currentToken.m_Type != TokenTypeUndefined) {
-                    EndToken(currentToken, tokens);
-                }
-
-                currentToken.m_Type = TokenTypeSemiColon;
-                currentToken.m_Text.append(1, currCh);
-                EndToken(currentToken, tokens);
-
-                break;
-
-            case '"':
-                if(currentToken.m_Type == TokenTypeStringLiteral) {
-                    EndToken(currentToken, tokens);
-                } else if(currentToken.m_Type == TokenTypeUndefined) {
-                    currentToken.m_Type = TokenTypeStringLiteral;
-                } else {
-                    EndToken(currentToken, tokens);
-                    currentToken.m_Type = TokenTypeStringLiteral;
-                }
-
-                break;
-
-            case '\n':
-            case '\r':
-                EndToken(currentToken, tokens);
-
-                currentToken.m_LineNumber++;
-
-                break;
-            case '\t':
-            case ' ':
-                if(currentToken.m_Type == TokenTypeStringLiteral) {
-                    currentToken.m_Text.append(1, currCh);
-                } else {                    
-                    EndToken(currentToken, tokens);
-                }
-
-                break;
-
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                if(currentToken.m_Type == TokenTypeUndefined) {
-                    currentToken.m_Type = TokenTypeIntegerLiteral;
-                }
-                
-                currentToken.m_Text.append(1, currCh);
-
-                break;
-
-            default: 
-                if(currentToken.m_Type == TokenTypeUndefined) {
-
-                    if(std::isalpha(currCh)) {
-                        
-                        currentToken.m_Type = TokenTypeIdentifier;
-
-                    }
-
-                }
-
-                currentToken.m_Text.append(1, currCh);
-
-                break;
-
-        }
-
-    }
-
-    EndToken(currentToken, tokens);
-
-    tokens.push_back(Token{TokenTypeEOF, "EOF"});
-
-    return tokens;
+    tokenizer.Advance(match.str().size());
 
 }
 
-void Tokenizer::EndToken(Token& token, std::vector<Token>& tokens) {
+static void DefaultHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
 
-    if(token.m_Type != TokenTypeUndefined) {
+    tokenizer.Advance(match.str().size());
+    tokenizer.PushBackToken(tokenType, match.str());
 
-        if(token.m_Type == TokenTypeIdentifier) {
-            if(const auto it = IDENTIFIER_MAP.find(token.m_Text); it != IDENTIFIER_MAP.end()) {
-                token.m_Type = it->second;
+}
+
+static void IntegerHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
+
+    tokenizer.Advance(match.str().size());
+
+}
+
+Tokenizer::Tokenizer(const std::string& inProgram) : m_InProgram(inProgram) {
+
+    m_TokenPatterns = {
+
+        { std::regex(R"(\s+)"), TokenTypeWhitespace, SkipHandler },
+        { std::regex(R"([0-9]+)"), TokenTypeIntegerLiteral, DefaultHandler },
+
+        // Parens, Braces, Brackets
+        { std::regex(R"(\()"), TokenTypeOpenParen, DefaultHandler },
+        { std::regex(R"(\))"), TokenTypeCloseParen, DefaultHandler },
+
+        // Multi Numerical Manipulation Operators
+        { std::regex(R"(\+=)"), TokenTypePlusEqualsOperator, DefaultHandler },
+        { std::regex(R"(\-=)"), TokenTypeMinusEqualsOperator, DefaultHandler },
+        { std::regex(R"(\/=)"), TokenTypeDivideEqualsOperator, DefaultHandler },
+        { std::regex(R"(\*=)"), TokenTypeMultiplyEqualsOperator, DefaultHandler },
+
+        // Single Binary Operators
+        { std::regex(R"(\+)"), TokenTypePlusOperator, DefaultHandler },
+        { std::regex(R"(\-)"), TokenTypeMinusOperator, DefaultHandler },
+        { std::regex(R"(\/)"), TokenTypeDivideOperator, DefaultHandler },
+        { std::regex(R"(\*)"), TokenTypeMultiplyOperator, DefaultHandler },
+
+        // Comparison
+        { std::regex(R"(\|\|)"), TokenTypeOrOperator, DefaultHandler },
+        { std::regex(R"(&&)"), TokenTypeAndOperator, DefaultHandler },
+        { std::regex(R"(==)"), TokenTypeEqEq, DefaultHandler },
+
+        // Assignment
+        { std::regex(R"(!=)"), TokenTypeNotEquals, DefaultHandler },
+        { std::regex(R"(=)"), TokenTypeEquals, DefaultHandler },
+
+
+    };
+
+}
+
+std::vector<Token> Tokenizer::Parse() {
+
+    bool matched;
+
+    while(!IsAtEOF()) {
+
+        matched = false;
+
+        for (auto& [pattern, tokenType, handler] : m_TokenPatterns) {
+
+            std::smatch match;
+
+            std::string::const_iterator begin = m_InProgram.cbegin() + m_Pos;
+
+            if (std::regex_search(begin, m_InProgram.cend(), match, pattern)) {
+                if (match.position() == 0) {
+
+                    handler(*this, tokenType, match);
+
+                    matched = true;
+                    break;
+                }
             }
+
         }
 
-        tokens.push_back(token);        
+        if (!matched) {
+            std::cout << "Unrecognized symbol " << m_InProgram.substr(m_Pos, 1) << std::endl;
+            break;
+        }
+
     }
 
-    // Reset Token
-    token.m_Type = TokenTypeUndefined;
-    token.m_Text.erase();
+    return m_Tokens;
 
 }
 
-bool Tokenizer::IsAlpha(const std::string& string) {
-
-    for(char ch : string) {
-        if(!isalpha(ch)) {
-            return false;
-        }
-    }
-    
-    return true;
-
+void Tokenizer::Advance(const size_t n) {
+    m_Pos += n;
 }
 
-bool Tokenizer::IsInt(const std::string& string) {
-
-    auto it = string.begin();
-    while(it != string.end() && std::isdigit(*it)) ++it;
-    return !string.empty() && it == string.end();
-
+void Tokenizer::PushBackToken(TokenType tokenType, std::string_view text) {
+    m_Tokens.push_back({ tokenType, std::move(std::string(text)) });
 }

@@ -1,7 +1,1 @@
-void run(string str) {
-
-    print(str);
-
-}
-
-run("Hello World");
+1001

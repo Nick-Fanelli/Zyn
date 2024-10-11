@@ -7,7 +7,7 @@ namespace Zyn {
     enum TokenType {
 
         // Identifiers
-        TokenTypeUndefined,
+        TokenTypeWhitespace,
         TokenTypeIdentifier,
 
         // Keywords
@@ -20,8 +20,23 @@ namespace Zyn {
         TokenTypeStringLiteral,
 
         // Operators
+        TokenTypePlusOperator,
+        TokenTypeMinusOperator,
+        TokenTypeMultiplyOperator,
+        TokenTypeDivideOperator,
+
+        // Numerical Manipulators
         TokenTypeEquals,
-        TokenTypeBinaryOperator,
+        TokenTypeNotEquals,
+        TokenTypePlusEqualsOperator,
+        TokenTypeMinusEqualsOperator,
+        TokenTypeMultiplyEqualsOperator,
+        TokenTypeDivideEqualsOperator,
+
+        // Comparisons
+        TokenTypeAndOperator,
+        TokenTypeOrOperator,
+        TokenTypeEqEq,
 
         // Parens
         TokenTypeOpenParen,
@@ -37,47 +52,48 @@ namespace Zyn {
 
     };
 
-    constexpr std::string_view TOKEN_TYPES[] = {
+    inline const char* TokenTypeToString(TokenType tokenType) {
+        switch (tokenType) {
+            case TokenTypeWhitespace:           return "WHITESPACE";
+            case TokenTypeIdentifier:           return "IDENTIFIER";
+            case TokenTypeIntegerKeyword:       return "INTEGER_KEYWORD";
+            case TokenTypeStringKeyword:        return "STRING_KEYWORD";
+            case TokenTypeVoidKeyword:          return "VOID_KEYWORD";
+            case TokenTypeIntegerLiteral:       return "INTEGER_LITERAL";
+            case TokenTypeStringLiteral:        return "STRING_LITERAL";
+            case TokenTypeEquals:               return "EQUALS";
+            case TokenTypePlusOperator:         return "PLUS_OPERATOR";
+            case TokenTypeMinusOperator:        return "MINUS_OPERATOR";
+            case TokenTypeMultiplyOperator:     return "MUL_OPERATOR";
+            case TokenTypeDivideOperator:       return "DIV_OPERATOR";
+            case TokenTypeOpenParen:            return "OPEN_PAREN";
+            case TokenTypeCloseParen:           return "CLOSE_PAREN";
+            case TokenTypeOpenCurlyBrace:       return "OPEN_CURLY_BRACE";
+            case TokenTypeCloseCurlyBrace:      return "CLOSE_CURLY_BRACE";
+            case TokenTypeSemiColon:            return "SEMI_COLON";
+            case TokenTypeEOF:                  return "EOF";
+            case TokenTypePlusEqualsOperator:   return "PLUS_EQUALS_OPERATOR";
+            case TokenTypeMinusEqualsOperator:  return "MINUS_EQUALS_OPERATOR";
+            case TokenTypeMultiplyEqualsOperator: return "MULTIPLE_EQUALS_OPERATOR";
+            case TokenTypeDivideEqualsOperator:     return "DIVIDE_EQUALS_OPERATOR";
+            case TokenTypeNotEquals:             return "NOT_EQUALS";
+            case TokenTypeOrOperator:           return "OR_OPERATOR";
+            case TokenTypeAndOperator:          return "AND_OPERATOR";
+            case TokenTypeEqEq:          return "EQ_EQ_COMPARISON";
 
-        "UNDEFINED",
-        "IDENTIFIER",
-
-        "INTEGER_KEYWORD",
-        "STRING_KEYWORD",
-        "VOID_KEYWORD",
-
-        "INTEGER_LITERAL",
-        "STRING_LITERAL",
-
-        "EQUALS",
-        "BINARY_OPERATOR",
-
-        "OPEN_PAREN",
-        "CLOSE_PAREN",
-        "OPEN_CURLY_BRACE",
-        "CLOSE_CURLY_BRACE",
-
-        "SEMI_COLON",
-
-        "EOF"
-        
-    };
-
-    const std::unordered_map<std::string, TokenType> IDENTIFIER_MAP = {
-        { "int", TokenTypeIntegerKeyword },
-        { "string", TokenTypeStringKeyword },
-        { "void", TokenTypeVoidKeyword }
-    };
+            default:                            return "UNNAMED";
+        }
+    }
 
     class Token {
 
     public:
         void print() const {
-            std::cout << "Token {" << TOKEN_TYPES[m_Type] << ", " << m_Text << ", " << m_StartOffset << ":" << m_EndOffset << ", " << m_LineNumber << "}" << std::endl;
+            std::cout << "Token {" << TokenTypeToString(m_Type) << ", " << m_Text << ", " << m_StartOffset << ":" << m_EndOffset << ", " << m_LineNumber << "}" << std::endl;
         }
 
     public:
-        TokenType m_Type{TokenTypeUndefined};
+        TokenType m_Type{TokenTypeWhitespace};
         std::string m_Text;
 
         size_t m_StartOffset{0};
@@ -86,15 +102,40 @@ namespace Zyn {
     
     };
 
+    class Tokenizer;
+
+    struct TokenPattern {
+
+        std::regex Pattern;
+        TokenType TokenType;
+        std::function<void(Tokenizer&, enum TokenType, const std::smatch&)> Handler;
+
+    };
+
     class Tokenizer {
 
     public:
-        std::vector<Token> Parse(const std::string& inProgram);
+        explicit Tokenizer(const std::string& inProgram);
+
+        void Advance(size_t n);
+        void PushBackToken(TokenType tokenType, std::string_view text);
+
+        std::vector<Token> Parse();
 
     private:
-        static inline void EndToken(Token& token, std::vector<Token>& tokens);
-        static inline bool IsAlpha(const std::string& string);
-        static inline bool IsInt(const std::string& string);
+
+        bool IsAtEOF() const { return m_Pos >= m_InProgram.size(); }
+
+    public:
+
+    private:
+        std::vector<TokenPattern> m_TokenPatterns;
+
+        std::string m_InProgram;
+        std::vector<Token> m_Tokens;
+
+        size_t m_Pos = 0;
+        size_t m_LineNumber = 1;
 
     };
 
