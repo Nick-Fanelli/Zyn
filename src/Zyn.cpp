@@ -1,9 +1,7 @@
-#include <Parser.h>
-
 #include "zynpch.h"
 
-#include "Lexer.h"
-#include "PrintingUtils.h"
+#include "Parser/Parser.h"
+#include "Parser/Lexer.h"
 
 using namespace Zyn;
 
