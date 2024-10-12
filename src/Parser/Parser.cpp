@@ -4,6 +4,7 @@ using namespace Zyn;
 
 std::unique_ptr<ExpressionNode> Parser::ParsePrimitiveExpression() {
 
+
     switch (At().Type) {
 
         case TokenTypeIdentifier:
@@ -13,7 +14,7 @@ std::unique_ptr<ExpressionNode> Parser::ParsePrimitiveExpression() {
             return std::make_unique<IntegerLiteralNode>(std::stoi(Consume().Text));
 
         default: // TODO: Handle error
-            std::cout << "ERROR: Unexpected token found during parsing " << At().Text << std::endl;
+            Log::FormatError("Unexpected token found during parsing token type: %s", TokenTypeToString(At().Type));
             exit(-1);
 
     }
@@ -52,6 +53,7 @@ std::unique_ptr<StatementNode> Parser::ParseStatement() {
 }
 
 std::unique_ptr<ProgramNode> Parser::ProduceAST() {
+
     std::unique_ptr<ProgramNode> program = std::make_unique<ProgramNode>();
 
     while (!IsCurrentTokenEOF()) {
@@ -61,4 +63,5 @@ std::unique_ptr<ProgramNode> Parser::ProduceAST() {
     }
 
     return program;
+
 }

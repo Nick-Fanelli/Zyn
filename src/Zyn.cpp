@@ -33,10 +33,6 @@ int main() {
     Parser parser{tokens};
     std::unique_ptr<ProgramNode> program = parser.ProduceAST();
 
-
-
-    std::cout << program->Represent() << std::endl;
-
     return 0;
 
 }

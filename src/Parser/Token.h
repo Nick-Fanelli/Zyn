@@ -128,7 +128,9 @@ namespace Zyn {
         size_t LineNumber{1};
 
         void print() const {
-            std::cout << "Token {" << TokenTypeToString(Type) << ", " << Text << ", " << StartOffset << ":" << EndOffset << ", " << LineNumber << "}" << std::endl;
+            std::stringstream ss;
+            ss << "Token {" << TokenTypeToString(Type) << ", " << Text << ", " << StartOffset << ":" << EndOffset << ", " << LineNumber << "}";
+            Log::Info(ss.str());
         }
 
     };
