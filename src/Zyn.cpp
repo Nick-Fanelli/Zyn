@@ -19,11 +19,7 @@ static std::string ReadFile(const char* filepath) {
 
 int main() {
 
-    // const std::string testString = "int number = (10 * hello);";
-
-    // const std::string programString = FileUtils::ReadFile("res/program.zyn");
-
-    const std::string programString = ReadFile("res/program.zyn");
+    const std::string programString = ReadFile("/Users/nickfanelli/Dev/Zyn/res/program.zyn");
 
     Tokenizer tokenizer{programString};
     std::vector<Token> tokens = tokenizer.Parse();
