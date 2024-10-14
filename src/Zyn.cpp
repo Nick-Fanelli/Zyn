@@ -19,6 +19,8 @@ static std::string ReadFile(const char* filepath) {
 
 int main() {
 
+    ZYN_PROFILE_BEGIN_SESSION("ZYN", "zyn-profiling.json");
+
     Log::Info("Reading file...");
 
     const std::string programString = ReadFile("/Users/nickfanelli/Dev/Zyn/res/program.zyn");
@@ -46,6 +48,8 @@ int main() {
     std::unique_ptr<ProgramNode> program = parser.ProduceAST();
 
     Log::Info("Parsing Successful!");
+
+    ZYN_PROFILE_END_SESSION();
 
     return 0;
 

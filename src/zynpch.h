@@ -25,3 +25,13 @@
 #include <filesystem>
 
 #include "Utils/Log.h"
+
+#ifndef NDEBUG
+#define ZYN_DEBUG 1
+#else
+#define ZYN_DEBUG 0
+#endif
+
+#define ZYN_PROFILE ZYN_DEBUG
+
+#include "Debug/Profile.h"

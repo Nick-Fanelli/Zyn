@@ -4,6 +4,8 @@ using namespace Zyn;
 
 static void DefaultHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
 
+    ZYN_PROFILE_FUNCTION()
+
     tokenizer.Advance(match.str().size());
     tokenizer.PushBackToken(tokenType, match.str());
 
@@ -11,11 +13,15 @@ static void DefaultHandler(Tokenizer& tokenizer, TokenType tokenType, const std:
 
 static void SkipHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
 
+    ZYN_PROFILE_FUNCTION()
+
     tokenizer.Advance(match.str().size());
 
 }
 
 static void IdentifierHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
+
+    ZYN_PROFILE_FUNCTION()
 
     tokenizer.Advance(match.str().size());
 
@@ -28,6 +34,8 @@ static void IdentifierHandler(Tokenizer& tokenizer, TokenType tokenType, const s
 }
 
 Tokenizer::Tokenizer(const std::string& inProgram) : m_InProgram(inProgram) {
+
+    ZYN_PROFILE_FUNCTION();
 
     m_TokenPatterns = {
 
@@ -88,11 +96,17 @@ Tokenizer::Tokenizer(const std::string& inProgram) : m_InProgram(inProgram) {
 
 std::vector<Token> Tokenizer::Parse() {
 
+    ZYN_PROFILE_FUNCTION()
+
     while(!IsAtEOF()) {
+
+        ZYN_PROFILE_SCOPE("Tokenizer::Parse:While(!IsAtEOF())");
 
         bool matched = false;
 
         for (auto& [pattern, tokenType, handler] : m_TokenPatterns) {
+
+            ZYN_PROFILE_SCOPE("Tokenizer::Parse:While(!IsAtEOF()):ForLoop")
 
             std::smatch match;
 
