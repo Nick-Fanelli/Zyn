@@ -41,6 +41,8 @@ namespace Zyn {
         TokenTypeAndOperator,
         TokenTypeOrOperator,
         TokenTypeEqEq,
+        TokenTypeGreaterThan,
+        TokenTypeLessThan,
 
         TokenTypeExclamation,
         TokenTypeQuestionMark,
@@ -50,6 +52,8 @@ namespace Zyn {
         TokenTypeCloseParen,
         TokenTypeOpenCurlyBrace,
         TokenTypeCloseCurlyBrace,
+        TokenTypeOpenSquareBracket,
+        TokenTypeCloseSquareBracket,
 
         // Delimiter
         TokenTypeSemiColon,
@@ -101,6 +105,10 @@ namespace Zyn {
             case TokenTypeReturnKeyword:       return "RETURN_KEYWORD";
             case TokenTypeComma:                return "COMMA";
             case TokenTypeStructKeyword:        return "STRUCT_KEYWORD";
+            case TokenTypeGreaterThan:          return "GREATER_THAN";
+            case TokenTypeLessThan:             return "LESS_THAN";
+            case TokenTypeOpenSquareBracket: return "OPEN_SQUARE_BRACKET";
+            case TokenTypeCloseSquareBracket: return "CLOSE_SQUARE_BRACKET";
 
             default:                            return "UNNAMED";
 

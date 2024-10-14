@@ -19,19 +19,33 @@ static std::string ReadFile(const char* filepath) {
 
 int main() {
 
+    Log::Info("Reading file...");
+
     const std::string programString = ReadFile("/Users/nickfanelli/Dev/Zyn/res/program.zyn");
+
+    Log::Info("File read successfully!");
+
+    Log::Info("Tokenizing String");
 
     Tokenizer tokenizer{programString};
     std::vector<Token> tokens = tokenizer.Parse();
 
-    for(const Token& token : tokens) {
+    Log::Info("Tokenizing Successful!");
 
-        token.print();
+    Log::FormatTrace("Num Tokens: %d", tokens.size());
 
-    }
+    // for(const Token& token : tokens) {
+    //
+    //     token.print();
+    //
+    // }
+
+    Log::Info("Parsing Tokens...");
 
     Parser parser{tokens};
     std::unique_ptr<ProgramNode> program = parser.ProduceAST();
+
+    Log::Info("Parsing Successful!");
 
     return 0;
 

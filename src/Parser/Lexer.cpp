@@ -47,6 +47,8 @@ Tokenizer::Tokenizer(const std::string& inProgram) : m_InProgram(inProgram) {
         { std::regex(R"(\))"), TokenTypeCloseParen, DefaultHandler },
         { std::regex(R"(\{)"), TokenTypeOpenCurlyBrace, DefaultHandler },
         { std::regex(R"(\})"), TokenTypeCloseCurlyBrace, DefaultHandler },
+        { std::regex(R"(\[)"), TokenTypeOpenSquareBracket, DefaultHandler },
+        { std::regex(R"(\])"), TokenTypeCloseSquareBracket, DefaultHandler },
 
         // Multi Numerical Manipulation Operators
         { std::regex(R"(\+=)"), TokenTypePlusEqualsOperator, DefaultHandler },
@@ -64,6 +66,8 @@ Tokenizer::Tokenizer(const std::string& inProgram) : m_InProgram(inProgram) {
         { std::regex(R"(\|\|)"), TokenTypeOrOperator, DefaultHandler },
         { std::regex(R"(&&)"), TokenTypeAndOperator, DefaultHandler },
         { std::regex(R"(==)"), TokenTypeEqEq, DefaultHandler },
+        { std::regex(R"(>)"), TokenTypeGreaterThan, DefaultHandler },
+        { std::regex(R"(<)"), TokenTypeLessThan, DefaultHandler },
 
         // Assignment
         { std::regex(R"(!=)"), TokenTypeNotEquals, DefaultHandler },
@@ -77,8 +81,6 @@ Tokenizer::Tokenizer(const std::string& inProgram) : m_InProgram(inProgram) {
         { std::regex(R"(:)"), TokenTypeColon, DefaultHandler },
         { std::regex(R"(\.)"), TokenTypeDot, DefaultHandler },
         { std::regex(R"(,)"), TokenTypeComma, DefaultHandler },
-
-
 
     };
 
