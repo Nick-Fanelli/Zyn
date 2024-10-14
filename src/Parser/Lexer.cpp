@@ -1,135 +1,220 @@
 #include "Lexer.h"
 
+#include "AST.h"
+
 using namespace Zyn;
 
-static void DefaultHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
+void Tokenizer::EndToken(Token& token) {
 
-    ZYN_PROFILE_FUNCTION()
-
-    tokenizer.Advance(match.str().size());
-    tokenizer.PushBackToken(tokenType, match.str());
-
-}
-
-static void SkipHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
-
-    ZYN_PROFILE_FUNCTION()
-
-    tokenizer.Advance(match.str().size());
-
-}
-
-static void IdentifierHandler(Tokenizer& tokenizer, TokenType tokenType, const std::smatch& match) {
-
-    ZYN_PROFILE_FUNCTION()
-
-    tokenizer.Advance(match.str().size());
-
-    if (const auto it = KeywordMap.find(match.str()); it != KeywordMap.end()) {
-        tokenType = it->second;
+    if (token.Type != TokenTypeWhitespace && token.Type != TokenTypeComment) {
+        m_Tokens.push_back(token);
     }
 
-    tokenizer.PushBackToken(tokenType, match.str());
+    token.Type = TokenTypeWhitespace;
+    token.Text.erase();
 
 }
 
-Tokenizer::Tokenizer(const std::string& inProgram) : m_InProgram(inProgram) {
 
-    ZYN_PROFILE_FUNCTION();
+void Tokenizer::SingleTokenHandler(Token& currentToken, const TokenType tokenType, const char character) {
 
-    m_TokenPatterns = {
+    if (currentToken.Type == TokenTypeComment)
+        return;
 
-        { std::regex(R"(\s+)"), TokenTypeWhitespace, SkipHandler }, // Whitespace
-        { std::regex(R"(//.*)"), TokenTypeWhitespace, SkipHandler }, // Single-Line Comment
-        { std::regex(R"(/\*(.|\n)*\*/)"), TokenTypeWhitespace, SkipHandler }, // Multi-Line Comment
+    if (currentToken.Type == TokenTypeStringLiteral) {
+        currentToken.Text.push_back(character);
+        return;
+    }
 
-        { std::regex(R"([a-zA-Z_][a-zA-Z0-9_]*)"), TokenTypeIdentifier, IdentifierHandler },
+    if (currentToken.Type != TokenTypeWhitespace) {
+        EndToken(currentToken);
+    }
 
-        { std::regex(R"(".*")"), TokenTypeStringLiteral, DefaultHandler },
-        { std::regex(R"([0-9]+(\.[0-9]+)?f)"), TokenTypeFloatLiteral, DefaultHandler },
-        { std::regex(R"([0-9]+\.[0-9]+)"), TokenTypeDoubleLiteral, DefaultHandler },
-        { std::regex(R"([0-9]+)"), TokenTypeIntegerLiteral, DefaultHandler },
+    currentToken.Type = tokenType;
+    currentToken.Text.push_back(character);
 
-        // Parens, Braces, Brackets
-        { std::regex(R"(\()"), TokenTypeOpenParen, DefaultHandler },
-        { std::regex(R"(\))"), TokenTypeCloseParen, DefaultHandler },
-        { std::regex(R"(\{)"), TokenTypeOpenCurlyBrace, DefaultHandler },
-        { std::regex(R"(\})"), TokenTypeCloseCurlyBrace, DefaultHandler },
-        { std::regex(R"(\[)"), TokenTypeOpenSquareBracket, DefaultHandler },
-        { std::regex(R"(\])"), TokenTypeCloseSquareBracket, DefaultHandler },
-
-        // Multi Numerical Manipulation Operators
-        { std::regex(R"(\+=)"), TokenTypePlusEqualsOperator, DefaultHandler },
-        { std::regex(R"(\-=)"), TokenTypeMinusEqualsOperator, DefaultHandler },
-        { std::regex(R"(\/=)"), TokenTypeDivideEqualsOperator, DefaultHandler },
-        { std::regex(R"(\*=)"), TokenTypeMultiplyEqualsOperator, DefaultHandler },
-
-        // Single Binary Operators
-        { std::regex(R"(\+)"), TokenTypePlusOperator, DefaultHandler },
-        { std::regex(R"(\-)"), TokenTypeMinusOperator, DefaultHandler },
-        { std::regex(R"(\/)"), TokenTypeDivideOperator, DefaultHandler },
-        { std::regex(R"(\*)"), TokenTypeMultiplyOperator, DefaultHandler },
-
-        // Comparison
-        { std::regex(R"(\|\|)"), TokenTypeOrOperator, DefaultHandler },
-        { std::regex(R"(&&)"), TokenTypeAndOperator, DefaultHandler },
-        { std::regex(R"(==)"), TokenTypeEqEq, DefaultHandler },
-        { std::regex(R"(>)"), TokenTypeGreaterThan, DefaultHandler },
-        { std::regex(R"(<)"), TokenTypeLessThan, DefaultHandler },
-
-        // Assignment
-        { std::regex(R"(!=)"), TokenTypeNotEquals, DefaultHandler },
-        { std::regex(R"(=)"), TokenTypeEquals, DefaultHandler },
-
-        { std::regex(R"(!)"), TokenTypeExclamation, DefaultHandler },
-        { std::regex(R"(\?)"), TokenTypeQuestionMark, DefaultHandler },
-
-        // Delimiter
-        { std::regex(R"(;)"), TokenTypeSemiColon, DefaultHandler },
-        { std::regex(R"(:)"), TokenTypeColon, DefaultHandler },
-        { std::regex(R"(\.)"), TokenTypeDot, DefaultHandler },
-        { std::regex(R"(,)"), TokenTypeComma, DefaultHandler },
-
-    };
+    EndToken(currentToken);
 
 }
+
+void Tokenizer::NumericalTokenHandler(Token& currentToken, const TokenType tokenType, const char character) {
+
+    if (currentToken.Type == TokenTypeComment)
+        return;
+
+    if (currentToken.Type == TokenTypeStringLiteral) {
+        currentToken.Text.push_back(character);
+        return;
+    }
+
+    if (currentToken.Type == tokenType) {
+        currentToken.Text.push_back(character);
+        return;
+    }
+
+    if (currentToken.Type != TokenTypeWhitespace) {
+        EndToken(currentToken);
+    }
+
+    currentToken.Type = tokenType;
+    currentToken.Text.push_back(character);
+
+}
+
+void Tokenizer::StringTokenHandler(Token& currentToken) {
+
+    if (currentToken.Type == TokenTypeComment)
+        return;
+
+    if (currentToken.Type == TokenTypeStringLiteral) {
+        EndToken(currentToken);
+        return;
+    }
+
+    if (currentToken.Type != TokenTypeWhitespace) {
+        EndToken(currentToken);
+    }
+
+    currentToken.Type = TokenTypeStringLiteral;
+
+}
+
+Tokenizer::Tokenizer(const std::string& inProgram) : m_InProgram(inProgram) {}
 
 std::vector<Token> Tokenizer::Parse() {
 
     ZYN_PROFILE_FUNCTION()
 
-    while(!IsAtEOF()) {
+    Token currenToken{TokenTypeWhitespace, "", 0, 0, 1};
 
-        ZYN_PROFILE_SCOPE("Tokenizer::Parse:While(!IsAtEOF())");
+    while (m_Pos < m_InProgram.size()) {
 
-        bool matched = false;
+        char c = At();
 
-        for (auto& [pattern, tokenType, handler] : m_TokenPatterns) {
+        ZYN_PROFILE_SCOPE("Tokenizer::Parse::ForLoop");
 
-            ZYN_PROFILE_SCOPE("Tokenizer::Parse:While(!IsAtEOF()):ForLoop")
+        switch (c) {
 
-            std::smatch match;
+            case '"':
+                StringTokenHandler(currenToken);
+                break;
 
-            std::string::const_iterator begin = m_InProgram.cbegin() + m_Pos;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                NumericalTokenHandler(currenToken, TokenTypeIntegerLiteral, c);
 
-            if (std::regex_search(begin, m_InProgram.cend(), match, pattern)) {
-                if (match.position() == 0) {
+                break;
 
-                    handler(*this, tokenType, match);
+            case '{':
+                SingleTokenHandler(currenToken, TokenTypeOpenCurlyBrace, c);
+                break;
+            case '}':
+                SingleTokenHandler(currenToken, TokenTypeCloseCurlyBrace, c);
+                break;
+            case '(':
+                SingleTokenHandler(currenToken, TokenTypeOpenParen, c);
+                break;
+            case ')':
+                SingleTokenHandler(currenToken, TokenTypeCloseParen, c);
+                break;
+            case '[':
+                SingleTokenHandler(currenToken, TokenTypeOpenSquareBracket, c);
+                break;
+            case ']':
+                SingleTokenHandler(currenToken, TokenTypeCloseSquareBracket, c);
+                break;
 
-                    matched = true;
+            case '?':
+                SingleTokenHandler(currenToken, TokenTypeQuestionMark, c);
+                break;
+            case '.':
+                SingleTokenHandler(currenToken, TokenTypeDot, c);
+            break;
+
+            case '+':
+                SingleTokenHandler(currenToken, TokenTypePlusOperator, c);
+                break;
+            case '-':
+                SingleTokenHandler(currenToken, TokenTypeMinusOperator, c);
+                break;
+            case '*':
+                SingleTokenHandler(currenToken, TokenTypeMultiplyOperator, c);
+                break;
+            case '/':
+                if (currenToken.Type == TokenTypeComment) {
                     break;
                 }
-            }
+
+                if (PeekChar().has_value()) {
+                    if (PeekChar().value() == '/') { // Start Comment
+                        currenToken.Type = TokenTypeComment;
+                        break;
+                    }
+                }
+
+                SingleTokenHandler(currenToken, TokenTypeDivideOperator, c);
+                break;
+            case '=':
+                SingleTokenHandler(currenToken, TokenTypeEquals, c);
+                break;
+
+            case ':':
+                SingleTokenHandler(currenToken, TokenTypeColon, c);
+                break;
+            case ';':
+                SingleTokenHandler(currenToken, TokenTypeSemiColon, c);
+                break;
+            case ',':
+                SingleTokenHandler(currenToken, TokenTypeComma, c);
+                break;
+
+            case ' ':
+            case '\t':
+                if (currenToken.Type == TokenTypeComment)
+                    break;
+
+                if (currenToken.Type == TokenTypeStringLiteral) {
+                    currenToken.Text.push_back(c);
+                } else {
+                    EndToken(currenToken);
+                }
+
+                break;
+
+            case '\n':
+            case '\r':
+                EndToken(currenToken);
+                break;
+
+            default:
+                if (currenToken.Type == TokenTypeWhitespace) {
+                    currenToken.Type = TokenTypeIdentifier;
+                }
+
+                if (isalpha(c)) {
+                    currenToken.Text.push_back(c);
+                } else {
+                    Log::FormatError("Invalid Symbol found during lexical anaylis: %c", c);
+                    exit(-1);
+                }
+
+                break;
 
         }
 
-        if (!matched) {
-            std::cout << "Unrecognized symbol " << m_InProgram.substr(m_Pos, 1) << std::endl;
-            break;
-        }
+        m_Pos++;
 
     }
+
+    EndToken(currenToken);
 
     m_Tokens.push_back({ TokenTypeEOF, "EOF" });
 
@@ -137,10 +222,9 @@ std::vector<Token> Tokenizer::Parse() {
 
 }
 
-void Tokenizer::Advance(const size_t n) {
-    m_Pos += n;
-}
-
 void Tokenizer::PushBackToken(TokenType tokenType, std::string_view text) {
     m_Tokens.push_back({ tokenType, std::move(std::string(text)) });
 }
+
+char Tokenizer::At() const { return m_InProgram.at(m_Pos); }
+std::optional<char> Tokenizer::PeekChar() const { return (m_Pos + 1 < m_InProgram.size()) ? std::make_optional(m_InProgram.at(m_Pos + 1)) : std::nullopt; }

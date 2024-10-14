@@ -36,18 +36,18 @@ int main() {
 
     Log::FormatTrace("Num Tokens: %d", tokens.size());
 
-    // for(const Token& token : tokens) {
+    for(const Token& token : tokens) {
+
+        token.print();
+
+    }
+
+    // Log::Info("Parsing Tokens...");
     //
-    //     token.print();
+    // Parser parser{tokens};
+    // std::unique_ptr<ProgramNode> program = parser.ProduceAST();
     //
-    // }
-
-    Log::Info("Parsing Tokens...");
-
-    Parser parser{tokens};
-    std::unique_ptr<ProgramNode> program = parser.ProduceAST();
-
-    Log::Info("Parsing Successful!");
+    // Log::Info("Parsing Successful!");
 
     ZYN_PROFILE_END_SESSION();
 

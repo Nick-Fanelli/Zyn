@@ -8,6 +8,7 @@ namespace Zyn {
 
         // Identifiers
         TokenTypeWhitespace,
+        TokenTypeComment,
         TokenTypeIdentifier,
 
         // Keywords
@@ -109,6 +110,7 @@ namespace Zyn {
             case TokenTypeLessThan:             return "LESS_THAN";
             case TokenTypeOpenSquareBracket: return "OPEN_SQUARE_BRACKET";
             case TokenTypeCloseSquareBracket: return "CLOSE_SQUARE_BRACKET";
+            case TokenTypeComment:          return "COMMENT";
 
             default:                            return "UNNAMED";
 
