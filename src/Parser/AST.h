@@ -23,8 +23,6 @@ namespace Zyn {
         Node() = default;
         virtual ~Node() = default;
 
-        [[nodiscard]] virtual std::string Represent() const = 0;
-
     };
 
     struct StatementNode : public Node {};
@@ -33,8 +31,6 @@ namespace Zyn {
 
         NodeType Type = NodeTypeProgram;
         std::vector<std::unique_ptr<StatementNode>> Body;
-
-        [[nodiscard]] std::string Represent() const override;
 
     };
 
@@ -56,8 +52,6 @@ namespace Zyn {
         BinaryExpressionNode(std::unique_ptr<ExpressionNode>* left, char op, std::unique_ptr<ExpressionNode>* right)
             : Left(std::move(*left)), Operator(op), Right(std::move(*right)) {}
 
-        [[nodiscard]] std::string Represent() const override;
-
     };
 
     struct IdentifierNode : public ExpressionNode {
@@ -69,8 +63,6 @@ namespace Zyn {
         IdentifierNode() = default;
         explicit IdentifierNode(std::string symbol) : Symbol(std::move(symbol)) {}
 
-        [[nodiscard]] std::string Represent() const override;
-
     };
 
     struct IntegerLiteralNode: public ExpressionNode {
@@ -81,8 +73,6 @@ namespace Zyn {
 
         IntegerLiteralNode() = default;
         explicit IntegerLiteralNode(const int value) : Value(value) {}
-
-        [[nodiscard]] std::string Represent() const override;
 
     };
 

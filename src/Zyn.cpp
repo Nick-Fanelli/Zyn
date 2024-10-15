@@ -3,6 +3,8 @@
 #include "Parser/Parser.h"
 #include "Parser/Lexer.h"
 
+#include "Utils/PrintFormat.h"
+
 using namespace Zyn;
 
 static std::string ReadFile(const char* filepath) {
@@ -42,12 +44,14 @@ int main() {
 
     }
 
-    // Log::Info("Parsing Tokens...");
-    //
-    // Parser parser{tokens};
-    // std::unique_ptr<ProgramNode> program = parser.ProduceAST();
-    //
-    // Log::Info("Parsing Successful!");
+    Log::Info("Parsing Tokens...");
+
+    Parser parser{tokens};
+    std::unique_ptr<ProgramNode> program = parser.ProduceAST();
+
+    std::cout << program << std::endl;
+
+    Log::Info("Parsing Successful!");
 
     ZYN_PROFILE_END_SESSION();
 
