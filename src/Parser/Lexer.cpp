@@ -7,6 +7,13 @@ using namespace Zyn;
 void Tokenizer::EndToken(Token& token) {
 
     if (token.Type != TokenTypeWhitespace && token.Type != TokenTypeComment) {
+
+        if (token.Type == TokenTypeIdentifier) {
+            if (KeywordMap.contains(token.Text)) {
+                token.Type = KeywordMap.at(token.Text);
+            }
+        }
+
         m_Tokens.push_back(token);
     }
 
