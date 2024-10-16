@@ -6,7 +6,8 @@ using namespace Zyn;
 
 void Tokenizer::EndToken(Token& token) {
 
-    if (token.Type != TokenTypeWhitespace && token.Type != TokenTypeComment) {
+    if (token.Type != TokenTypeWhitespace && token.Type != TokenTypeSingleLineComment
+        && token.Type != TokenTypeMultiLineComment) {
 
         if (token.Type == TokenTypeIdentifier) {
             if (KeywordMap.contains(token.Text)) {
@@ -25,7 +26,7 @@ void Tokenizer::EndToken(Token& token) {
 
 void Tokenizer::SingleTokenHandler(Token& currentToken, const TokenType tokenType, const char character) {
 
-    if (currentToken.Type == TokenTypeComment)
+    if (currentToken.Type == TokenTypeSingleLineComment || currentToken.Type == TokenTypeMultiLineComment)
         return;
 
     if (currentToken.Type == TokenTypeStringLiteral) {
@@ -46,7 +47,7 @@ void Tokenizer::SingleTokenHandler(Token& currentToken, const TokenType tokenTyp
 
 void Tokenizer::NumericalTokenHandler(Token& currentToken, const TokenType tokenType, const char character) {
 
-    if (currentToken.Type == TokenTypeComment)
+    if (currentToken.Type == TokenTypeSingleLineComment || currentToken.Type == TokenTypeMultiLineComment)
         return;
 
     if (currentToken.Type == TokenTypeStringLiteral) {
@@ -70,7 +71,7 @@ void Tokenizer::NumericalTokenHandler(Token& currentToken, const TokenType token
 
 void Tokenizer::StringTokenHandler(Token& currentToken) {
 
-    if (currentToken.Type == TokenTypeComment)
+    if (currentToken.Type == TokenTypeSingleLineComment || currentToken.Type == TokenTypeMultiLineComment)
         return;
 
     if (currentToken.Type == TokenTypeStringLiteral) {
@@ -153,18 +154,41 @@ std::vector<Token> Tokenizer::Parse() {
                 SingleTokenHandler(currenToken, TokenTypeMinusOperator, c);
                 break;
             case '*':
+                if (PeekChar().has_value()) {
+                    if (PeekChar().value() == '/') {
+                        m_Pos++;
+                        EndToken(currenToken);
+                        break;
+                    }
+                }
+
                 SingleTokenHandler(currenToken, TokenTypeMultiplyOperator, c);
                 break;
             case '/':
-                if (currenToken.Type == TokenTypeComment) {
+                if (currenToken.Type == TokenTypeSingleLineComment) {
                     break;
                 }
 
                 if (PeekChar().has_value()) {
-                    if (PeekChar().value() == '/') { // Start Comment
-                        currenToken.Type = TokenTypeComment;
-                        break;
+                    bool shouldContinue = true;
+
+                    switch (PeekChar().value()) {
+                        case '/':
+                            EndToken(currenToken);
+                            currenToken.Type = TokenTypeSingleLineComment;
+                            shouldContinue = false;
+                            break;
+                        case '*':
+                            EndToken(currenToken);
+                            currenToken.Type = TokenTypeMultiLineComment;
+                            shouldContinue = false;
+                            break;
+                        default:
+                            break;
                     }
+
+                    if (!shouldContinue)
+                        break;
                 }
 
                 SingleTokenHandler(currenToken, TokenTypeDivideOperator, c);
@@ -185,7 +209,7 @@ std::vector<Token> Tokenizer::Parse() {
 
             case ' ':
             case '\t':
-                if (currenToken.Type == TokenTypeComment)
+                if (currenToken.Type == TokenTypeSingleLineComment || currenToken.Type == TokenTypeMultiLineComment)
                     break;
 
                 if (currenToken.Type == TokenTypeStringLiteral) {
@@ -198,6 +222,10 @@ std::vector<Token> Tokenizer::Parse() {
 
             case '\n':
             case '\r':
+                if (currenToken.Type == TokenTypeMultiLineComment) {
+                    break;
+                }
+
                 EndToken(currenToken);
                 break;
 
